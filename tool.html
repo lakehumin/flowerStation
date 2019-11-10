@@ -78,13 +78,13 @@
 				const calFuncList = [showTimes, showCost, showPrice, showProfitMargin1, showProfitMargin2, showProfitMargin3]; //算子序列
 				function calculate() {
 					var num = document.getElementById("purchaseNum").value;
-					if (num == "" || num == undefined || num == null || isNaN(num)) {
+					if (num == "" || num == 0 || num == undefined || num == null || isNaN(num)) {
 						alert("采购数量请输入数字");
 						return;
 					}
 					num = parseFloat(num);
 					var purchasePrice = document.getElementById("purchasePrice").value;
-					if (purchasePrice == "" || purchasePrice == undefined || purchasePrice == null || isNaN(purchasePrice)) {
+					if (purchasePrice == "" || purchasePrice == 0 || purchasePrice == undefined || purchasePrice == null || isNaN(purchasePrice)) {
 						alert("采购价格请输入数字");
 						return;
 					}
