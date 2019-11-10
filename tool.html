@@ -47,7 +47,7 @@
 									一扎包含多少支
 								</label>
 								<input type="text" class="form-control" id="purchaseNum" placeholder="请输入数量"
-								value="" required="" OnKeyPress="InputEvent(event)">
+								value="" required="" OnKeyPress="listenInput(event)">
 								<div class="invalid-feedback">
 									Valid first name is required.
 								</div>
@@ -192,7 +192,7 @@
 						return - 1;
 					}
 				}
-				function InputEvent(event) {
+				function listenInput(event) {
 					if (event.keyCode == 13) {
 						calculate();
 					}
