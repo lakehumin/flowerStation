@@ -1,215 +1,259 @@
-</html>
 <!DOCTYPE html>
 <html lang="zh-CN">
-	<head>
-		<!-- Required meta tags -->
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"
-		/>
-		<!-- Bootstrap CSS -->
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
-		crossorigin="anonymous" />
-		<title>
-			FlowerStation
-		</title>
-	</head>
-	<body>
-		<body class="bg-light">
-			<div class="container">
-				<div class="py-5 text-center">
-					<h2>
-						花价计算
-					</h2>
-					<p class="lead">
-						输入一扎花的价格以及数量，点击下方按钮或输入回车，自动计算各售价下的利润率
-					</p>
-				</div>
-				<div class="row">
-					<div class="col-md-12 order-md-4">
-						<!-- <h4 class="mb-3">
-						Billing address
-						</h4>
-						-->
-						<div class="row">
-							<div class="col-md-6 mb-3">
-								<label for="lastName">
-									一扎价格
-								</label>
-								<input type="text" class="form-control" id="purchasePrice" placeholder="请输入总价"
-								value="" required="" OnKeyPress="listenInput(event)">
-								<div class="invalid-feedback">
-									Valid last name is required.
-								</div>
-							</div>
-							<div class="col-md-6 mb-3">
-								<label for="firstName">
-									一扎包含多少支
-								</label>
-								<input type="text" class="form-control" id="purchaseNum" placeholder="请输入数量"
-								value="" required="" OnKeyPress="listenInput(event)">
-								<div class="invalid-feedback">
-									Valid first name is required.
-								</div>
-							</div>
-						</div>
-						<button class="btn btn-primary btn-lg btn-block" onclick="calculate()">
-							开始计算
-						</button>
-						<hr class="mb-4">
-						<div class="table-responsive">
-							<table id="output" class="table table-hover table-bordered table-striped">
-							</table>
-						</div>
-					</div>
-				</div>
-				<footer class="my-5 pt-5 text-muted text-center text-small">
-					<p class="mb-1">
-						© 2019-2022 flower station
-					</p>
-				</footer>
-			</div>
-			<!-- Optional JavaScript -->
-			<script>
-				const HignLightThreshold = 60; //高亮提醒阈值
-				const ExpressCost = 4.0; //配送成本
-				const LossCost = 0.2; //损耗
-				const TimesList = [2.0, 2.5, 3.0, 3.5, 4.0]; //溢价倍数列表
-				const calFuncList = [showTimes, showCost, showPrice, showProfitMargin1, showProfitMargin2, showProfitMargin3]; //算子序列
-				function calculate() {
-					var num = document.getElementById("purchaseNum").value;
-					if (num == "" || num == 0 || num == undefined || num == null || isNaN(num)) {
-						alert("采购数量请输入数字");
-						return;
-					}
-					num = parseFloat(num);
-					var purchasePrice = document.getElementById("purchasePrice").value;
-					if (purchasePrice == "" || purchasePrice == 0 || purchasePrice == undefined || purchasePrice == null || isNaN(purchasePrice)) {
-						alert("采购价格请输入数字");
-						return;
-					}
-					purchasePrice = parseFloat(purchasePrice);
-					var th = addTh();
-					var tr = "";
-					var tdList = [];
-					var value;
-					for (i = 0; i < TimesList.length; i++) {
-						tdList = [];
-						for (j = 0; j < calFuncList.length; j++) {
-							value = calEngine(calFuncList[j], num, purchasePrice, TimesList[i]);
-							tdList.push(value);
-						}
-						tr += addTr(tdList);
-					}
-					document.getElementById("output").innerHTML = th + tr;
-				}
-				function addTh() {
-					var th = "<tr ><th>溢价倍数</th><th >成本</th><th >售价</th><th >原价利润率</th><th >88折利润率</th><th >77折利润率</th></tr>";
-					return th;
-				}
-				function addTr(tdList) {
-					var tr = "<tr>";
-					for (k = 0; k < tdList.length; k++) {
-						tr += addTd(tdList[k]);
-					}
-					tr += "</tr>";
-					return tr;
-				}
-				function addTd(td) {
-					if (td.highLight) {
-						return '<td style="color:red">' + td.text + "</td>";
-					} else {
-						return '<td >' + td.text + "</td>";
-					}
-				}
-				function calCost(num, purchasePrice) {
-					return purchasePrice / num + ExpressCost / num;
-				}
-				function showCost(num, purchasePrice) {
-					return {
-						text: calCost(num, purchasePrice).toFixed(2),
-						highLight: false
-					};
-				}
-				function calPrice(num, purchasePrice, times) {
-					var cost = calCost(num, purchasePrice);
-					return (cost * times).toFixed(2);
-				}
-				function showPrice(num, purchasePrice, times) {
-					return {
-						text: calPrice(num, purchasePrice, times),
-						highLight: false
-					};
-				}
-				function calProfitMargin(num, purchasePrice, times, discount) {
-					var cost = purchasePrice / num * (1 + LossCost) + ExpressCost / num;
-					var price = calPrice(num, purchasePrice, times) * discount;
-					return ((price - cost) / price * 100).toFixed(2);
-				}
-				//无折扣
-				function showProfitMargin1(num, purchasePrice, times) {
-					var profitMargin = calProfitMargin(num, purchasePrice, times, 1.0);
-					return {
-						text: profitMargin + "%",
-						highLight: profitMargin < HignLightThreshold
-					};
-				}
-				//88折
-				function showProfitMargin2(num, purchasePrice, times) {
-					var profitMargin = calProfitMargin(num, purchasePrice, times, 0.88);
-					return {
-						text: profitMargin + "%",
-						highLight: profitMargin < HignLightThreshold
-					};
-				}
-				//77折
-				function showProfitMargin3(num, purchasePrice, times) {
-					var profitMargin = calProfitMargin(num, purchasePrice, times, 0.77);
-					return {
-						text: profitMargin + "%",
-						highLight: profitMargin < HignLightThreshold
-					};
-				}
-				function showTimes(times) {
-					var text = times + "倍溢价";
-					return {
-						text,
-						highLight: false
-					};
-				}
-				function calEngine(func, num, purchasePrice, times) {
-					switch (func) {
-					case showTimes:
-						return func(times);
-					case showCost:
-						return func(num, purchasePrice);
-					case showPrice:
-					case showProfitMargin1:
-					case showProfitMargin2:
-					case showProfitMargin3:
-						return func(num, purchasePrice, times);
-					default:
-						return - 1;
-					}
-				}
-				function listenInput(event) {
-					if (event.keyCode == 13) {
-						calculate();
-					}
-				}
-			</script>
-			<!-- jQuery first, then Popper.js, then Bootstrap JS -->
-			<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-			crossorigin="anonymous">
-			</script>
-			<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-			integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-			crossorigin="anonymous">
-			</script>
-			<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-			integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-			crossorigin="anonymous">
-			</script>
-		</body>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+          crossorigin="anonymous"/>
+    <title>
+        FlowerStation
+    </title>
+</head>
 
+<body class="bg-light">
+<div class="container">
+    <div class="py-5 text-center">
+        <h2>
+            花价计算
+        </h2>
+        <p class="lead">
+            输入一扎花的价格以及数量，点击下方按钮或输入回车，自动计算各售价下的利润率，并支持可选的自定义售价预览
+        </p>
+    </div>
+    <div class="row">
+        <div class="col-md-12 order-md-4">
+            <!-- <h4 class="mb-3">
+            Billing address
+            </h4>
+            -->
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label>
+                        一扎价格
+                    </label>
+                    <input type="text" class="form-control" id="purchasePrice" placeholder="请输入总价"
+                           value="" required="" OnKeyPress="listenInput(event)">
+                    <div class="invalid-feedback">
+                        Valid last name is required.
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>
+                        一扎包含多少支
+                    </label>
+                    <input type="text" class="form-control" id="purchaseNum" placeholder="请输入数量"
+                           value="" required="" OnKeyPress="listenInput(event)">
+                    <div class="invalid-feedback">
+                        Valid first name is required.
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>
+                        自定义售价
+                    </label>
+                    <input type="text" class="form-control" id="prePrice" placeholder="可选输入预定售价"
+                           value="" required="" OnKeyPress="listenInput(event)">
+                    <div class="invalid-feedback">
+                        Valid last name is required.
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-lg btn-block" onclick="calculate()">
+                开始计算
+            </button>
+            <hr class="mb-4">
+            <div class="table-responsive">
+                <table id="output" class="table table-hover table-bordered table-striped">
+                </table>
+            </div>
+        </div>
+    </div>
+    <footer class="my-5 pt-5 text-muted text-center text-small">
+        <p class="mb-1">
+            © 2019-2022 flower station
+        </p>
+    </footer>
+</div>
+<!-- Optional JavaScript -->
+<script>
+    // 配置开始
+    const HignLightThreshold = 60; //高亮提醒阈值
+    const ExpressCost = 4.0; //配送成本
+    const LossCost = 0.2; //损耗
+    const TimesList = [2.0, 2.5, 3.0, 3.5, 4.0]; //溢价倍数列表
+    const TableHeader = ["溢价倍数", "成本", "售价", "原价利润率", "88折利润率", "77折利润率"]; //列表标题
+    const calFuncList = [showTimes, showCost, showPrice, showProfitMargin1, showProfitMargin2, showProfitMargin3]; //算子序列
+    // 配置结束
+
+    function calculate() {
+        var purchasePrice = document.getElementById("purchasePrice").value;
+        purchasePrice = parseFloat(purchasePrice);
+        if (purchasePrice === "NaN") {
+            alert("请输入正确的数字");
+            return;
+        }
+
+        var num = document.getElementById("purchaseNum").value;
+        num = parseFloat(num);
+        if (num === "NaN") {
+            alert("请输入正确的数字");
+            return;
+        }
+
+        var timesList = TimesList;
+        var prePrice = document.getElementById("prePrice").value;
+        prePrice = parseFloat(prePrice);
+        if (prePrice !== "NaN" && prePrice > 0) {
+            timesList = timesList.concat([prePrice / calCost(num, purchasePrice)]);
+        }
+
+        var th = addTh();
+        var tr = "";
+        var tdList = [];
+        var value;
+        for (var i = 0; i < timesList.length; i++) {
+            tdList = [];
+            for (var j = 0; j < calFuncList.length; j++) {
+                value = calEngine(calFuncList[j], num, purchasePrice, timesList[i]);
+                tdList.push(value);
+            }
+            tr += addTr(tdList);
+        }
+        document.getElementById("output").innerHTML = th + tr;
+    }
+    
+    function addTh() {
+        var th = "<tr>";
+        for (var i = 0; i < TableHeader.length; i++) {
+            th += "<th>" + TableHeader[i] + "</th>";
+        }
+        th += "</tr>";
+        return th;
+    }
+    
+    function addTr(tdList) {
+        var tr = "<tr>";
+        for (var k = 0; k < tdList.length; k++) {
+            tr += addTd(tdList[k]);
+        }
+        tr += "</tr>";
+        return tr;
+    }
+    
+    function addTd(td) {
+        if (td.highLight) {
+            return '<td style="color:red">' + td.text + "</td>";
+        } else {
+            return '<td >' + td.text + "</td>";
+        }
+    }
+    
+    function calCost(num, purchasePrice) {
+        return purchasePrice / num + ExpressCost / num;
+    }
+    
+    function showCost(num, purchasePrice) {
+        return {
+            text: calCost(num, purchasePrice).toFixed(2),
+            highLight: false
+        };
+    }
+    
+    function calPrice(num, purchasePrice, times) {
+        var cost = calCost(num, purchasePrice);
+        return (cost * times).toFixed(2);
+    }
+    
+    function showPrice(num, purchasePrice, times) {
+        return {
+            text: calPrice(num, purchasePrice, times),
+            highLight: false
+        };
+    }
+    
+    function calProfitMargin(num, purchasePrice, times, discount) {
+        var cost = purchasePrice / num * (1 + LossCost) + ExpressCost / num;
+        var price = calPrice(num, purchasePrice, times) * discount;
+        return ((price - cost) / price * 100).toFixed(2);
+    }
+    
+    //无折扣
+    function showProfitMargin1(num, purchasePrice, times) {
+        var profitMargin = calProfitMargin(num, purchasePrice, times, 1.0);
+        return {
+            text: profitMargin + "%",
+            highLight: profitMargin < HignLightThreshold
+        };
+    }
+    
+    //88折
+    function showProfitMargin2(num, purchasePrice, times) {
+        var profitMargin = calProfitMargin(num, purchasePrice, times, 0.88);
+        return {
+            text: profitMargin + "%",
+            highLight: profitMargin < HignLightThreshold
+        };
+    }
+    
+    //77折
+    function showProfitMargin3(num, purchasePrice, times) {
+        var profitMargin = calProfitMargin(num, purchasePrice, times, 0.77);
+        return {
+            text: profitMargin + "%",
+            highLight: profitMargin < HignLightThreshold
+        };
+    }
+    
+    function showTimes(times) {
+        var f = times.toString().split(".");
+        if (f.length > 1 && f[1].length > 2) {
+            times = times.toFixed(2);
+        }
+        var text = times + "倍溢价";
+        return {
+            text: text,
+            highLight: false
+        };
+    }
+    
+    function calEngine(func, num, purchasePrice, times) {
+        switch (func) {
+            case showTimes:
+                return func(times);
+            case showCost:
+                return func(num, purchasePrice);
+            case showPrice:
+            case showProfitMargin1:
+            case showProfitMargin2:
+            case showProfitMargin3:
+                return func(num, purchasePrice, times);
+            default:
+                return -1;
+        }
+    }
+
+    function listenInput(event) {
+        if (event.keyCode === 13) {
+            calculate();
+        }
+    }
+</script>
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous">
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous">
+</script>
+</body>
 </html>
